@@ -1,43 +1,52 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import whatsappIcon from '../../assets/images/icons/whatsapp.svg';
+import api from '../../services/api';
 
 import './styles.css';
 
-const TeacherItem: React.FC = () => {
+export interface Teacher {
+  id: number;
+  user_id: number;
+  name: string;
+  avatar: string;
+  cost: number;
+  bio: string;
+  whatsapp: string;
+  subject: string;
+}
+
+interface TeacherItemProps {
+  teacher: Teacher;
+}
+
+const TeacherItem: React.FC<TeacherItemProps> = ({ teacher }) => {
+  const createNewConnection = useCallback(() => {
+    api.post('connections', { user_id: teacher.user_id });
+  }, [teacher]);
+
   return (
     <article className="teacher-item">
       <header>
-        <img
-          src="https://avatars3.githubusercontent.com/u/38046801?s=460&u=d0dead7f3bff3dc90bf9ff3a99bd500d25893c73&v=4"
-          alt="Renan Bertoldo"
-        />
+        <img src={teacher.avatar} alt={teacher.name} />
         <div>
-          <strong>Renan Bertoldo</strong>
-          <span>Matemática</span>
+          <strong>{teacher.name}</strong>
+          <span>{teacher.subject}</span>
         </div>
       </header>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec
-        fringilla nisl. Etiam libero purus, pretium eu molestie a, rhoncus eget
-        nibh. Vivamus vitae sodales arcu. Suspendisse condimentum commodo risus,
-        a hendrerit eros dignissim eu. Duis facilisis mi et nisl placerat, vitae
-        fermentum diam consectetur. Integer venenatis ipsum in enim finibus
-        porta. Proin vehicula diam nec est condimentum faucibus. Fusce elementum
-        ipsum orci, a tincidunt leo sodales efficitur. Nullam vel maximus massa.
-        Aenean aliquet sem non molestie facilisis. Cras varius, elit quis
-        ultrices tincidunt, lacus mauris vulputate mi, sed molestie dui metus
-        non elit.
-      </p>
+      <p>{teacher.bio}</p>
 
       <footer>
         <p>
           Preço/hora
-          <strong>R$ 30,00 </strong>
+          <strong>R$ {teacher.cost} </strong>
         </p>
-        <button type="button">
+        <a
+          onClick={createNewConnection}
+          href={`https://wa.me/+55${teacher.whatsapp}`}
+        >
           <img src={whatsappIcon} alt="Whatsapp" />
           Entrar em contato
-        </button>
+        </a>
       </footer>
     </article>
   );
