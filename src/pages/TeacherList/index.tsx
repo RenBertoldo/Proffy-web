@@ -1,37 +1,90 @@
-import React from 'react';
+import React, { useState, useCallback, FormEvent } from 'react';
 
 import PageHeader from '../../components/PageHeader';
-import TeacherItem from '../../components/TeacherItem';
+import TeacherItem, { Teacher } from '../../components/TeacherItem';
+import Input from '../../components/Input';
+import Select from '../../components/Select';
 
 import './styles.css';
+import api from '../../services/api';
 
-const TeacherList = () => {
-	return (
-		<div id="page-teacher-list" className="container">
-			<PageHeader title="Estes são os proffys disponíveis.">
-				<form id="search-teachers">
-					<div className="input-block">
-						<label htmlFor="subject">Matéria</label>
-						<input type="text" id="subject" />
-					</div>
+const TeacherList: React.FC = () => {
+  const [subject, setSubject] = useState('');
+  const [weekDay, setWeekDay] = useState('');
+  const [time, setTime] = useState('');
 
-					<div className="input-block">
-						<label htmlFor="week_day">Dia da semana</label>
-						<input type="text" id="week_day" />
-					</div>
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
 
-					<div className="input-block">
-						<label htmlFor="time">Hora</label>
-						<input type="text" id="time" />
-					</div>
-				</form>
-			</PageHeader>
+  const handleSubmit = useCallback(
+    (e: FormEvent) => {
+      e.preventDefault();
 
-			<main>
-				<TeacherItem/>
-			</main>
-		</div>
-	)
-}
+      api
+        .get<Teacher[]>('classes', {
+          params: { subject, week_day: Number(weekDay), time },
+        })
+        .then((response) => setTeachers(response.data));
+    },
+    [subject, weekDay, time],
+  );
 
-export default TeacherList; 
+  return (
+    <div id="page-teacher-list" className="container">
+      <PageHeader title="Estes são os proffys disponíveis.">
+        <form id="search-teachers" onSubmit={handleSubmit}>
+          <Select
+            name="subject"
+            label="Matéria"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            options={[
+              { value: 'Artes', label: 'Artes' },
+              { value: 'Biologia', label: 'Biologia' },
+              { value: 'Matemática', label: 'Matemática' },
+              { value: 'História', label: 'História' },
+              { value: 'Física', label: 'Física' },
+              { value: 'Geografia', label: 'Geografia' },
+              { value: 'Português', label: 'Português' },
+              { value: 'Química', label: 'Química' },
+            ]}
+          />
+
+          <Select
+            name="week_day"
+            label="Dia da semana"
+            value={weekDay}
+            onChange={(e) => setWeekDay(e.target.value)}
+            options={[
+              { value: '0', label: 'Domingo' },
+              { value: '1', label: 'Segunda-feira' },
+              { value: '2', label: 'Terça-feira' },
+              { value: '3', label: 'Quarta-feira' },
+              { value: '4', label: 'Quinta-feira' },
+              { value: '5', label: 'Sexta-feira' },
+              { value: '6', label: 'Sábado' },
+            ]}
+          />
+
+          <Input
+            name="time"
+            label="Hora"
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+          />
+
+          <button type="submit">Buscar</button>
+        </form>
+      </PageHeader>
+
+      <main>
+        {teachers &&
+          teachers.map((teacher) => (
+            <TeacherItem key={teacher.id} teacher={teacher} />
+          ))}
+      </main>
+    </div>
+  );
+};
+
+export default TeacherList;
